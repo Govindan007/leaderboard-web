@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import './leaderboard.css'; // <-- 1. Imports the new CSS file
+import myLogo from './assets/gdg_logo1.svg'; // <-- 2. Import your logo image
 
 // We can't import from a URL, and we can't edit index.html.
 // So, we will dynamically load the script.
@@ -176,8 +177,8 @@ const Leaderboard = () => {
                 <div className="container nav-content">
                     <div className="logo-container">
                         {/* You can put your <img> tag here as we discussed */}
-                        <svg className="logo-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" /></svg>
-                        <span className="logo-text">GDG Logo</span>
+                        <img src={myLogo} alt="GDG Logo" style={{ width: '60px', height: '60px' }} />
+                        <span className="logo-text">GDGoC ASIET</span>
                     </div>
                 </div>
             </nav>
