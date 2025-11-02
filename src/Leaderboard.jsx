@@ -1,21 +1,213 @@
 import React, { useState, useEffect } from 'react';
-import './leaderboard.css'; // <-- 1. Imports the new CSS file
-import myLogo from './assets/gdg_logo1.svg'; // <-- 2. Import your logo image
+// import './leaderboard.css'; // <-- Reverted to fix build error
 
 // We can't import from a URL, and we can't edit index.html.
 // So, we will dynamically load the script.
 const SUPABASE_CDN_URL = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js';
 
-
 // --- Supabase Setup ---
-// 2. Reads the keys from your .env file
+// 1. Reverted from .env for Canvas. Use .env in your local project!
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
-
 
 // --- Hard-coded App Data ---
 const genericAvatar = 'https://placehold.co/40x40/B0B0B0/FFFFFF?text=P&font=roboto';
 const TOTAL_BADGES = 20;
+
+// --- CSS Styles ---
+// Merged leaderboard.css back into this file to fix build error
+const AppStyles = () => (
+  <style>{`
+    /* --- General Styles --- */
+    .app-container {
+      background-color: #f3f4f6;
+      min-height: 100vh;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      color: #1f2937;
+    }
+    .container {
+      width: 100%;
+      max-width: 1024px;
+      margin-left: auto;
+      margin-right: auto;
+      padding-left: 1rem;
+      padding-right: 1rem;
+    }
+
+    /* --- Navbar --- */
+    nav {
+      background-color: white;
+      box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+    .nav-content {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-top: 1rem;
+      padding-bottom: 1rem;
+    }
+    .logo-container {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .logo-icon {
+      width: 2rem;
+      height: 2rem;
+      color: #2563eb;
+    }
+    .logo-text {
+      font-size: 1.25rem;
+      font-weight: bold;
+      color: #1f2937;
+    }
+    .content-wrap {
+      padding-top: 2rem;
+      padding-bottom: 2rem;
+    }
+
+    /* --- Header Card --- */
+    header {
+      max-width: 95%; /* Make it 95% of the container width */
+      margin-left: auto;
+      margin-right: auto;
+    }
+    .header-card {
+      text-align: center;
+      margin-bottom: 2rem;
+      background-color: white;
+      border-radius: 1rem;
+      padding: 2rem;
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+      border: 1px solid rgba(0, 0, 0, 0.05);
+      position: relative;
+      overflow: hidden;
+    }
+    .header-gradient-border {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 4px;
+      background-image: linear-gradient(to right, #3b82f6, #ef4444, #f59e0b);
+    }
+    .header-subtitle {
+      font-size: 1.5rem;
+      font-weight: 600;
+      color: #374151;
+      margin-bottom: 0.5rem;
+    }
+    .gdg-logo-text-g { color: #3b82f6; }
+    .gdg-logo-text-d { color: #ef4444; }
+    .gdg-logo-text-g2 { color: #eab308; }
+    .gdg-logo-text-o { color: #22c55e; }
+
+    .header-title {
+      font-size: 2.5rem;
+      font-weight: 800;
+      background-image: linear-gradient(to right, #2563eb, #16a34a, #f59e0b);
+      color: transparent;
+      -webkit-background-clip: text;
+      background-clip: text;
+      padding-bottom: 0.5rem;
+    }
+    .header-description {
+      color: #4b5563;
+      font-size: 1.125rem;
+      margin-top: 0.75rem;
+    }
+
+    /* --- Table --- */
+    .table-container {
+      background-color: white;
+      border-radius: 0.75rem;
+      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+      overflow: hidden;
+    }
+    .table-scroll {
+      overflow-x: auto;
+    }
+    table {
+      width: 100%;
+      text-align: left;
+    }
+    thead {
+      background-color: #f9fafb;
+      border-bottom: 1px solid #e5e7eb;
+    }
+    th {
+      padding: 0.75rem 1.5rem;
+      font-size: 0.75rem;
+      font-weight: 500;
+      color: #6b7280;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    tbody {
+      divide-y: 1px solid #e5e7eb;
+    }
+    tr:hover {
+      background-color: #f9fafb;
+    }
+    td {
+      padding: 1rem 1.5rem;
+      white-space: nowrap;
+      vertical-align: middle;
+    }
+    .rank-span {
+      font-size: 1.125rem;
+      font-weight: bold;
+      color: #6b7280;
+    }
+    .rank-span-top3 {
+      color: #f59e0b;
+    }
+    .user-info {
+      display: flex;
+      align-items: center;
+    }
+    .avatar {
+      width: 2.5rem;
+      height: 2.5rem;
+      border-radius: 9999px;
+      flex-shrink: 0;
+    }
+    .user-name {
+      margin-left: 1rem;
+      font-size: 0.875rem;
+      font-weight: 500;
+      color: #111827;
+    }
+    .progress-cell {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+    .progress-text {
+      font-size: 0.875rem;
+      color: #4b5563;
+      font-weight: 600;
+    }
+
+    /* --- Progress Bar --- */
+    .progress-bar-container {
+      width: 12rem; /* 192px */
+      background-color: #e5e7eb;
+      border-radius: 9999px;
+      height: 1rem;
+      box-shadow: inset 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    }
+    .progress-bar-fill {
+      background-color: #22c55e;
+      height: 1rem;
+      border-radius: 9999px;
+      transition: width 0.5s ease-out;
+    }
+  `}</style>
+);
 
 const SkillBadgeProgress = ({ badges, total }) => {
     const percentage = (badges / total) * 100;
@@ -29,8 +221,8 @@ const SkillBadgeProgress = ({ badges, total }) => {
     );
 };
 
-// 3. Renamed the component to 'Leaderboard'
-const Leaderboard = () => {
+// Renamed from 'App' to 'Leaderboard' to match the file
+const Leaderboard = () => { 
     // New state for the loaded client
     const [supabase, setSupabase] = useState(null);
     const [leaderboardData, setLeaderboardData] = useState([]);
@@ -40,17 +232,17 @@ const Leaderboard = () => {
     // 3. Add useEffect to load the Supabase script
     useEffect(() => {
         // Add a check for placeholder values
-        if (supabaseUrl === undefined || supabaseKey === undefined) {
-            console.error("Supabase URL/Key not set. Please update your .env file.");
-            setFetchError("Please add your Supabase URL and Key to the .env file.");
+        // Updated this check to look for the placeholder strings again
+        if (supabaseUrl === 'YOUR_SUPABASE_PROJECT_URL' || supabaseKey === 'YOUR_SUPABASE_ANON_KEY') {
+            console.error("Supabase URL/Key not set. Please update the variables in the code.");
+            setFetchError("Please paste your Supabase URL and Key into the code.");
             setLoading(false);
             return; // Stop right here
         }
 
         // Check if script is already loaded by window object
         if (window.supabase) {
-            console.log("Supabase already loaded.");
-            if (!supabase) { // Set client only if not already set in state
+            if (!supabase) { 
                 setSupabase(window.supabase.createClient(supabaseUrl, supabaseKey));
             }
             return;
@@ -60,9 +252,7 @@ const Leaderboard = () => {
         let script = document.querySelector(`script[src="${SUPABASE_CDN_URL}"]`);
         
         const handleLoad = () => {
-            console.log("Supabase script loaded successfully.");
             if (window.supabase) {
-                // Script loaded, now create and set the client
                 setSupabase(window.supabase.createClient(supabaseUrl, supabaseKey));
             } else {
                 console.error("Supabase script loaded but window.supabase is not found.");
@@ -78,18 +268,13 @@ const Leaderboard = () => {
         };
 
         if (!script) {
-            console.log("Creating and loading Supabase script.");
             script = document.createElement('script');
             script.src = SUPABASE_CDN_URL;
             script.async = true;
-            // Add listeners *before* appending
             script.addEventListener('load', handleLoad);
             script.addEventListener('error', handleError);
             document.head.appendChild(script);
         } else {
-            // Script tag exists, but maybe it's still loading
-            // Add listeners to the existing script tag
-            console.log("Supabase script tag already exists, attaching listeners.");
             script.addEventListener('load', handleLoad);
             script.addEventListener('error', handleError);
         }
@@ -101,49 +286,69 @@ const Leaderboard = () => {
                 script.removeEventListener('error', handleError);
             }
         };
-    }, []); // Runs only once
+    }, []); 
 
     // 4. Update data-fetching useEffect to depend on 'supabase' client
     useEffect(() => {
         // Only run if the supabase client is ready
         if (supabase) {
             async function fetchLeaderboard() {
-                // Set loading to true *before* fetching
                 setLoading(true);
-                setFetchError(null); // Clear previous errors
+                setFetchError(null); 
                 
-                // Fetch name and badges. Order by badges.
+                // --- 1. MODIFICATION: Fetch the new 'all' column ---
                 const { data, error } = await supabase
                     .from('leaderboard')
-                    .select('name, badges') // FIX: Only select columns that exist
+                    .select('name, badges, all') // <-- Added 'all'
                     .order('badges', { ascending: false });
 
                 if (error) {
                     console.error('Error fetching data:', error);
-                    setFetchError(error.message); // Set the error message
+                    setFetchError(error.message); 
                 } else {
-                    // 5. Add the 'rank', 'total', and 'avatar' to the data
-                    const rankedData = data.map((item, index) => ({
+                    // --- 2. MODIFICATION: Add logic for the 'all' column ---
+                    const rankedData = data.map((item, index) => {
+                        // Check if the 'all' column is 'Yes'
+                        const completedAll = item.all === 'Yes';
+                        
+                        // Set the badge count based on the new logic
+                        const displayBadges = completedAll ? TOTAL_BADGES : item.badges;
+                        
+                        return {
+                            ...item,
+                            id: item.name, 
+                            rank: index + 1,
+                            badges: displayBadges, // <-- Use the new overriden value
+                            total: TOTAL_BADGES, 
+                            avatar: genericAvatar, 
+                        };
+                    });
+                    
+                    // --- 3. MODIFICATION: Re-sort the data ---
+                    // We must re-sort here because someone with 'Yes' might
+                    // have a low badge count but should be at the top.
+                    const sortedData = rankedData.sort((a, b) => b.badges - a.badges);
+                    
+                    // Re-rank the sorted data
+                    const finalData = sortedData.map((item, index) => ({
                         ...item,
-                        id: item.name, // FIX: Use name as key, since ID wasn't created
                         rank: index + 1,
-                        total: TOTAL_BADGES, // Add hard-coded total
-                        avatar: genericAvatar, // Add hard-coded avatar
                     }));
-                    setLeaderboardData(rankedData);
+
+                    setLeaderboardData(finalData);
                 }
-                // Set loading to false *after* fetch is complete (success or error)
                 setLoading(false);
             }
 
             fetchLeaderboard();
         }
-    }, [supabase]); // Re-run this effect ONLY when the supabase client is ready
+    }, [supabase]); 
 
-    // *** Error check for setup ***
-    if (fetchError === "Please add your Supabase URL and Key to the .env file.") {
+    // If the error is the setup message, render a special error component
+    if (fetchError === "Please paste your Supabase URL and Key into the code.") {
         return (
             <div className="app-container">
+                <AppStyles /> {/* Added styles here */}
                 <div className="container content-wrap" style={{ 
                     padding: '2rem', 
                     textAlign: 'center', 
@@ -156,13 +361,10 @@ const Leaderboard = () => {
                         Setup Incomplete
                     </h1>
                     <p style={{ color: '#4b5563', marginTop: '1rem', fontSize: '1.125rem' }}>
-                        Please add your Supabase URL and Key to the <strong>.env</strong> file.
+                        Please paste your Supabase URL and Key into the code.
                     </p>
                     <p style={{ color: '#6b7280', marginTop: '1rem' }}>
-                        You must create a <strong>.env</strong> file in your project's root folder and add your keys as <strong>VITE_SUPABASE_URL</strong> and <strong>VITE_SUPABASE_ANON_KEY</strong>.
-                    </p>
-                    <p style={{ color: '#6b7280', marginTop: '1rem' }}>
-                        After you save the file, you **must restart your server** (`npm run dev`).
+                        You need to replace <strong>'YOUR_SUPABASE_PROJECT_URL'</strong> and <strong>'YOUR_SUPABASE_ANON_KEY'</strong> in your <strong>leaderboard.jsx</strong> file (lines 12 and 13) with the real keys from your Supabase dashboard.
                     </p>
                 </div>
             </div>
@@ -170,15 +372,14 @@ const Leaderboard = () => {
     }
 
     return (
-        <div className="app-container">
-            {/* 4. Removed the <AppStyles /> component */}
+        <div className="app-container">    
+            <AppStyles /> {/* Added styles here */}
             
             <nav>
                 <div className="container nav-content">
                     <div className="logo-container">
-                        {/* You can put your <img> tag here as we discussed */}
-                        <img src={myLogo} alt="GDG Logo" style={{ width: '60px', height: '60px' }} />
-                        <span className="logo-text">GDGoC ASIET</span>
+                        <svg className="logo-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" /></svg>
+                        <span className="logo-text">GDG Logo</span>
                     </div>
                 </div>
             </nav>
@@ -200,12 +401,11 @@ const Leaderboard = () => {
 
                 <div className="table-container">
                     <div className="table-scroll">
-                        {/* 6. Handle Loading and Empty States */}
                         {loading ? (
                             <div style={{ padding: '2rem', textAlign: 'center', color: '#6b7280' }}>
                                 Loading Leaderboard...
                             </div>
-                        ) : fetchError ? ( // Show error if one occurred
+                        ) : fetchError ? ( 
                             <div style={{ padding: '2rem', textAlign: 'center', color: '#ef4444', fontWeight: 'bold' }}>
                                 Error: {fetchError}
                             </div>
@@ -224,7 +424,7 @@ const Leaderboard = () => {
                                 </thead>
                                 <tbody>
                                     {leaderboardData.map((user) => (
-                                        <tr key={user.name}> {/* FIX: Use name as key */}
+                                        <tr key={user.name}> 
                                             <td>
                                                 <span className={`rank-span ${user.rank <= 3 ? 'rank-span-top3' : ''}`}>{user.rank}</span>
                                             </td>
@@ -252,4 +452,5 @@ const Leaderboard = () => {
     );
 };
 
-export default Leaderboard; // 5. Export the new component name
+export default Leaderboard;
+
